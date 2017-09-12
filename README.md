@@ -10,7 +10,7 @@ get book by ID (HTTP GET), correct ID is three digits
 
 + **/api/book/{ID}/delete**
 delete book by ID (HTTP POST), correct ID is three digits
-*example:* http://myhost.me/api/book/001/delete
+*example:* http://myhost.me/api/book/delete
 
 + **/api/book/**
 show list of all books (HTTP GET)

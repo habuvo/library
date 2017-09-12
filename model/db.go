@@ -15,10 +15,10 @@ type Connection struct {
 func ConnectToDB() (*Connection, error) {
 
 	db, err := gorm.Open("postgres", "host="+
-		"127.0.0.1"+" user="+"book"+
-		" dbname="+"book"+
+		"127.0.0.1"+ " user="+ "book"+
+		" dbname="+ "book"+
 		" sslmode=disable "+
-		"password="+"book")
+		"password="+ "book")
 	if err != nil {
 		print(err)
 		return nil, err

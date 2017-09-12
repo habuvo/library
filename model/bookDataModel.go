@@ -36,7 +36,7 @@ func (d *BookDataStore) Remove(bookID int) (error) {
 //поиск книги по ID
 func (d *BookDataStore) GetByID(bookID int) (*Book, error) {
 	book := &Book{ID: bookID}
-	err := d.Connection.DB.First(&book).Error
+	err := d.Connection.DB.First(&book,bookID).Error
 	if err != nil {
 		return nil, err
 	}

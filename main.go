@@ -42,7 +42,7 @@ func main() {
 	r.Route("/book", func(r chi.Router) {
 		r.Get("/", env.listAll)
 		r.Post("/add", env.addBook)
-		r.Route("/{bookID:[0-9]*3}", func(r chi.Router) {
+		r.Route("/{bookID:[0-9]{3}}", func(r chi.Router) {
 			r.Use(env.BookCtx)
 			r.Get("/", env.getBook)
 			r.Post("/delete", env.deleteBook)
@@ -56,7 +56,11 @@ func main() {
 func (env *Env) BookCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bookID := chi.URLParam(r, "bookID")
-		ibookID, err := strconv.Atoi(bookID)		//TODO Error handling
+		ibookID, err := strconv.Atoi(bookID)
+		if err != nil {
+			w.Write([]byte("Ошибка приведения к инт"))
+			return
+		}
 		book, err :=  env.BookStore.GetByID(ibookID)
 		if err != nil {
 			w.Write([]byte("Нет такой книги"))

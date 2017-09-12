@@ -17,7 +17,7 @@ func ConnectToDB() (*Connection, error) {
 	db, err := gorm.Open("postgres", "host="+
 		"127.0.0.1"+" user="+"book"+
 		" dbname="+"book"+
-		" sslmode=disable"+
+		" sslmode=disable "+
 		"password="+"book")
 	if err != nil {
 		print(err)

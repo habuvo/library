@@ -1,4 +1,4 @@
-package library
+package main
 
 import (
 	"github.com/go-chi/chi"
@@ -9,8 +9,6 @@ import (
 	"library/model"
 	"context"
 	"strconv"
-	"fmt"
-	"os/user"
 )
 
 type Env struct {
@@ -44,7 +42,7 @@ func main() {
 	r.Route("/book", func(r chi.Router) {
 		r.Get("/", env.listAll)
 		r.Post("/add", env.addBook)
-		r.Route("/{bookID}", func(r chi.Router) {
+		r.Route("/{bookID:[0-9]*3}", func(r chi.Router) {
 			r.Use(env.BookCtx)
 			r.Get("/", env.getBook)
 			r.Post("/delete", env.deleteBook)
@@ -61,7 +59,7 @@ func (env *Env) BookCtx(next http.Handler) http.Handler {
 		ibookID, err := strconv.Atoi(bookID)		//TODO Error handling
 		book, err :=  env.BookStore.GetByID(ibookID)
 		if err != nil {
-			http.Error(w, http.StatusText(404), 404)
+			w.Write([]byte("Нет такой книги"))
 			return
 		}
 
@@ -85,34 +83,37 @@ func (env *Env) getBook(w http.ResponseWriter, r *http.Request) {
 }
 
 
-//добавить книгу   TODO fill fields
+//добавить книгу
 func (env *Env) addBook(w http.ResponseWriter, r *http.Request) {
-
-
-/*	Author 			string `json:"bookauthor"`
-	Publisher       string `json:"bookpublisher"`
-	Pub_Year        int    `json:"pubyear"`
-	Name	        string `json:"name"`
-	Genre	        string `json:"genre"`
-	Short_Desc
-
-    r.Context() chi
-
-*/
 
 //парсим строку запроса
 	author := r.FormValue("author")
 	publisher := r.FormValue("publisher")
+	year := r.FormValue("pubyear")
+	name := r.FormValue("name")
+	genre := r.FormValue("genre")
+	short_desc := r.FormValue("short_desc")
 
 
-	if len(author) == 0 || len(publisher) == 0 { print ("oops") }
-
+	if len(author) == 0 || len(name) == 0 {
+		w.Write([]byte("Не заполнены обязательные поля"))
+		return
+		}
 
 	book := model.Book {}
 	book.Author = author
+	book.Genre = genre
+	book.Name = name
+	pyear,err := strconv.Atoi(year); if err != nil {
+		w.Write([]byte("Год издания не число"))
+		return
+	}
+	book.Pub_Year = pyear
+	book.Publisher = publisher
+	book.Short_Desc = short_desc
 
-
-	err := env.BookStore.Add(&book)
+    //write entity
+	err = env.BookStore.Add(&book)
 	if err != nil {
 		// произошла ошибка
 		print("произошла ошибка")
@@ -138,11 +139,27 @@ func (env *Env) deleteBook(w http.ResponseWriter, r *http.Request) {
 	}
 	err := env.BookStore.Remove(book.ID)
 	if err == nil {
-		w.Write([]byte("удалена книга под номером "))
-		w.Write([]byte(book.ID))
+		message := "удалена книга под номером "+strconv.Itoa(book.ID)
+		w.Write([]byte(message))
 	}	else {
 	http.Error(w, http.StatusText(422), 422)
 	return
 	}
 }
 
+//вывести все книги
+func (env *Env) listAll(w http.ResponseWriter, r *http.Request) {
+	//books = []model.Book{}
+	books,err := env.BookStore.GetAll(); if err != nil {
+		w.Write([]byte("Ошибка получения списка"))
+		return
+	}
+
+	for _, value := range *books {
+		context, err := json.Marshal(value); if err != nil {
+			w.Write([]byte("Ошибка маршаллинга"))
+			break
+		}
+		w.Write(context)
+	}
+}
